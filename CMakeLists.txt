@@ -31,6 +31,15 @@ if ( WIN32 )
 
   # pull prebuilt libraries
 
+  add_library( glfw STATIC IMPORTED )
+  set_target_properties(glfw PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/libs/glfw/lib-vc2019/glfw3.lib)
+  target_include_directories(glfw INTERFACE libs/glfw/include)
+
+  add_library( openal SHARED IMPORTED )
+  #set_target_properties(openal PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/libs/openal/lib/OpenAL32.dll)
+  set_target_properties(openal PROPERTIES IMPORTED_IMPLIB ${PROJECT_SOURCE_DIR}/libs/openal/lib/OpenAL32.lib)
+  target_include_directories(openal INTERFACE libs/openal/include)
+
 endif()
 
 add_executable( app 

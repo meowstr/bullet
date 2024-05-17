@@ -8,6 +8,6 @@ void logger_log(
     ...
 );
 
-#define DEBUG_LOG( args... ) logger_log( 0, __func__, __LINE__, args );
-#define INFO_LOG( args... )  logger_log( 1, __func__, __LINE__, args );
-#define ERROR_LOG( args... ) logger_log( 2, __func__, __LINE__, args );
+#define DEBUG_LOG( ... ) logger_log( 0, __func__, __LINE__, __VA_ARGS__ );
+#define INFO_LOG( ... )  logger_log( 1, __func__, __LINE__, __VA_ARGS__ );
+#define ERROR_LOG( ... ) logger_log( 2, __func__, __LINE__, __VA_ARGS__ );

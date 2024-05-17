@@ -33,8 +33,8 @@ static void init_bullet_table()
 static float room_metric( rect_t r, vec2 pos )
 {
     // is this fucked? maybe....
-    float dx = abs( pos[ 0 ] - ( r.x + r.w * 0.5f ) ) - r.w * 0.5f;
-    float dy = abs( pos[ 1 ] - ( r.y + r.h * 0.5f ) ) - r.h * 0.5f;
+    float dx = fabsf( pos[ 0 ] - ( r.x + r.w * 0.5f ) ) - r.w * 0.5f;
+    float dy = fabsf( pos[ 1 ] - ( r.y + r.h * 0.5f ) ) - r.h * 0.5f;
 
     if ( dx < 0.0f ) dx = 0.0f;
     if ( dy < 0.0f ) dy = 0.0f;
