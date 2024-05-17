@@ -132,9 +132,9 @@ static int parse_font( font_t * font, parse_stream_t * stream )
     error += parse_token( stream, "chars count=" );
     error += parse_number( &font->char_count, stream );
 
-    if ( error == 0 ) {
-        print_font_info( font );
-    }
+    // if ( error == 0 ) {
+    //     print_font_info( font );
+    // }
 
     if ( error == 0 ) {
         for ( int i = 0; i < font->char_count; i++ ) {

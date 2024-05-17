@@ -51,6 +51,7 @@ struct {
 
     vbuffer_t player_buffer;
     vbuffer_t hammer_buffer;
+    vbuffer_t mob_buffer;
 
     // bullets
     vbuffer_t bitch_buffer;
@@ -376,6 +377,9 @@ void render_init()
     float bitch_bullet[ 10 ];
     ngon_vertices( bitch_bullet, 3 ); // (amount + 2) * 2
 
+    float mob[ 68 ];
+    ngon_vertices( mob, 32 ); // (amount + 2) * 2
+
     float hammer[ 16 ];
     hammer[ 0 ] = -2.0f;
     hammer[ 1 ] = -2.0f;
@@ -411,6 +415,9 @@ void render_init()
 
     intern.player_buffer.init( 2 );
     intern.player_buffer.set( player_data, 7 );
+
+    intern.mob_buffer.init( 2 );
+    intern.mob_buffer.set( mob, 34 );
 
     intern.bitch_buffer.init( 2 );
     intern.bitch_buffer.set( bitch_bullet, 5 );
@@ -509,14 +516,17 @@ static void render_line_bullet( int i )
 
 static void render_mob( int i )
 {
-    solid_sprite_t s;
-    s.color = color_green;
-    s.rect.x = state.mob_pos_list[ i ][ 0 ];
-    s.rect.y = state.mob_pos_list[ i ][ 1 ];
-    s.rect.w = 32;
-    s.rect.h = 32;
-    s.rect.centerize();
-    s.render();
+    sprite_t s;
+    glm_vec2_copy( state.mob_pos_list[ i ], s.pos );
+    s.color = color_red;
+    s.scale = 20.0f + 2.0f * sinf( state.render_time * 4.0f );
+    // s.color.r += 0.3f * sinf( state.render_time * 4.0f );
+    s.color.g += 0.3f + 0.3f * sinf( state.render_time * 4.0f );
+    s.color.b += 0.3f + 0.3f * sinf( state.render_time * 4.0f );
+    s.setup();
+
+    intern.mob_buffer.enable( 0 );
+    glDrawArrays( GL_TRIANGLE_FAN, 0, intern.mob_buffer.element_count );
 }
 
 static void render_player()
@@ -541,6 +551,18 @@ static void render_player()
     intern.hammer_buffer.enable( 0 );
     glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
     glDrawArrays( GL_TRIANGLE_FAN, 4, 4 );
+}
+
+static void render_exit()
+{
+    solid_sprite_t s;
+    s.color = color_black;
+    s.rect.x = state.exit_pos[ 0 ];
+    s.rect.y = state.exit_pos[ 1 ];
+    s.rect.w = 50.0f;
+    s.rect.h = 50.0f;
+    s.rect.centerize();
+    s.render();
 }
 
 static void render_ui()
@@ -579,7 +601,7 @@ static void render_room( int i )
     solid_sprite_t s;
     s.rect = state.room_rect_list[ i ];
     s.rect.margin( -5 );
-    s.color = color_black;
+    s.color = color_gray;
     s.render();
 }
 
@@ -599,6 +621,7 @@ static void render_world()
     setup_world_camera();
 
     render_rooms();
+    render_exit();
 
     for ( int i = 0; i < state.bullet_count; i++ ) {
         render_bitch_bullet( i );
@@ -622,9 +645,27 @@ void trigger_camera_shake()
 
 void render()
 {
-    glClearColor( 0.2f, 0.0f, 0.0f, 1.0f );
+    glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
     glClear( GL_COLOR_BUFFER_BIT );
 
-    render_world();
-    render_ui();
+    if ( state.scene == SCENE_GAME ) {
+        render_world();
+        render_ui();
+    }
+    if ( state.scene == SCENE_WIN ) {
+        setup_ui_camera();
+        text_settings_t settings;
+        settings.align_x = ALIGN_CENTER;
+        settings.align_y = ALIGN_CENTER;
+        settings.scale = 5.0f;
+        render_text( hardware_width() / 2, hardware_height() / 2, "WIN", settings );
+    }
+    if ( state.scene == SCENE_LOSE ) {
+        setup_ui_camera();
+        text_settings_t settings;
+        settings.align_x = ALIGN_CENTER;
+        settings.align_y = ALIGN_CENTER;
+        settings.scale = 5.0f;
+        render_text( hardware_width() / 2, hardware_height() / 2, "LOSE", settings );
+    }
 }

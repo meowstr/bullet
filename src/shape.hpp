@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cglm/types.h>
+
 struct rect_t {
     float x;
     float y;
@@ -28,6 +30,13 @@ struct rect_t {
     int contains( float x, float y ) const;
 };
 
+int intersect_line_and_rect(
+    vec2 out1,
+    vec2 out2,
+    rect_t r,
+    vec2 p1,
+    vec2 p2
+);
 
 /// out_data :: float[n * 2]
 void ngon_vertices( float * out_data, int n );

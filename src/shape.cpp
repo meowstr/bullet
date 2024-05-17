@@ -83,3 +83,14 @@ void ngon_vertices( float * out_data, int n )
         out_data[ ( i + 1 ) * 2 + 1 ] = sin( theta );
     }
 }
+
+static int intersect_segments( vec2 out, vec2 a, vec2 b, vec2 c, vec2 d )
+{
+
+    return 0;
+}
+
+int intersect_line_and_rect( vec2 out1, vec2 out2, rect_t r, vec2 p1, vec2 p2 )
+{
+    return 0;
+}

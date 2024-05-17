@@ -50,6 +50,13 @@ static void remove_mob( int i )
     state.mob_count--;
 }
 
+static void remove_bullet( int i )
+{
+    array_swap_last( state.bullet_pos_list, state.bullet_count, i );
+    array_swap_last( state.bullet_old_pos_list, state.bullet_count, i );
+    state.bullet_count--;
+}
+
 static void init_tables()
 {
     init_room_table();
@@ -99,6 +106,31 @@ static int constrain_to_rooms( vec2 pos )
     return metric != 0.0f;
 }
 
+static void spawn( vec2 pos )
+{
+    for ( int i = 0; i < 32; i++ ) {
+        int j = state.bullet_count++;
+        state.bullet_pos_list[ j ][ 0 ] = pos[ 0 ];
+        state.bullet_pos_list[ j ][ 1 ] = pos[ 1 ];
+
+        float t = rand() % 1000 / 1000.0f;
+        t *= 2 * M_PI;
+        vec2 step;
+        step[ 0 ] = cos( t );
+        step[ 1 ] = sin( t );
+
+        glm_vec2_copy(
+            state.bullet_pos_list[ j ],
+            state.bullet_old_pos_list[ j ]
+        );
+        glm_vec2_muladds(
+            step,
+            ( 100.0f + ( rand() % 100 ) ) * ( 1 / 60.0f ),
+            state.bullet_old_pos_list[ j ]
+        );
+    }
+}
+
 static void tick_bullet( int i )
 {
     vec2 step;
@@ -120,18 +152,20 @@ static void tick_bullet( int i )
 
     if ( !collide ) return;
 
+    remove_bullet( i );
+
     // bounce
-    if ( pre_constrained[ 0 ] - state.bullet_pos_list[ i ][ 0 ] != 0.0f ) {
-        step[ 0 ] *= -1.0f;
-    }
-    if ( pre_constrained[ 1 ] - state.bullet_pos_list[ i ][ 1 ] != 0.0f ) {
-        step[ 1 ] *= -1.0f;
-    }
-    glm_vec2_sub(
-        state.bullet_pos_list[ i ],
-        step,
-        state.bullet_old_pos_list[ i ]
-    );
+    // if ( pre_constrained[ 0 ] - state.bullet_pos_list[ i ][ 0 ] != 0.0f ) {
+    //     step[ 0 ] *= -1.0f;
+    // }
+    // if ( pre_constrained[ 1 ] - state.bullet_pos_list[ i ][ 1 ] != 0.0f ) {
+    //     step[ 1 ] *= -1.0f;
+    // }
+    // glm_vec2_sub(
+    //     state.bullet_pos_list[ i ],
+    //     step,
+    //     state.bullet_old_pos_list[ i ]
+    // );
 }
 
 static void tick_line_bullet( int i )
@@ -161,6 +195,8 @@ static void tick_hammer()
 
     float mob_hit_distance = 20.0f;
 
+    if ( state.player_z != 0.0f ) return; // player is in air
+
     for ( int i = 0; i < state.mob_count; i++ ) {
         if ( glm_vec2_distance2( hammer_end, state.mob_pos_list[ i ] ) <
                  mob_hit_distance * mob_hit_distance &&
@@ -172,6 +208,7 @@ static void tick_hammer()
                 state.fast_swing_timer = 0.0f;
             }
 
+            spawn( state.mob_pos_list[ i ] );
             remove_mob( i );
             state.player_hammer_vel = 0.0f;
             trigger_camera_shake();
@@ -249,16 +286,8 @@ static void do_funny()
     audio_play_damage();
 }
 
-static void loop()
+static void tick()
 {
-    float time = hardware_time();
-
-    state.tick_step = fminf( time - state.tick_time, 1 / 60.0f );
-    state.render_step = state.tick_step;
-
-    state.tick_time = time;
-    state.render_time = time;
-
     if ( state.funny_timer ) {
         state.funny_timer -= state.tick_step;
         if ( state.funny_timer <= 0.0f ) {
@@ -290,7 +319,7 @@ static void loop()
 
     audio_tick();
 
-    for ( int i = 0; i < state.bullet_count; i++ ) {
+    for ( int i = state.bullet_count - 1; i >= 0; i-- ) {
         tick_bullet( i );
     }
 
@@ -300,6 +329,36 @@ static void loop()
 
     tick_player();
     tick_hammer();
+
+    if ( state.player_z == 0.0f ) { // only if player is on the ground
+        for ( int i = 0; i < state.bullet_count; i++ ) {
+            if ( glm_vec2_distance(
+                     state.player_pos,
+                     state.bullet_pos_list[ i ]
+                 ) < 5.0f ) {
+                state.scene = SCENE_LOSE;
+            }
+        }
+    }
+
+    if ( glm_vec2_distance( state.player_pos, state.exit_pos ) < 50.0f ) {
+        state.scene = SCENE_WIN;
+    }
+}
+
+static void loop()
+{
+    float time = hardware_time();
+
+    state.tick_step = fminf( time - state.tick_time, 1 / 60.0f );
+    state.render_step = state.tick_step;
+
+    state.tick_time = time;
+    state.render_time = time;
+
+    if ( state.scene == SCENE_GAME ) {
+        tick();
+    }
 
     render();
 }
@@ -323,33 +382,20 @@ static void setup_rooms()
     state.room_rect_list[ i ].y = 0;
     state.room_rect_list[ i ].w = 600;
     state.room_rect_list[ i ].h = 1000;
+
+    i = state.room_count++;
+    state.room_rect_list[ i ].x = 1400;
+    state.room_rect_list[ i ].y = -900;
+    state.room_rect_list[ i ].w = 100;
+    state.room_rect_list[ i ].h = 1000;
+
+    state.exit_pos[ 0 ] = 1450;
+    state.exit_pos[ 1 ] = -850;
 }
 
 static void setup_bullets()
 {
-    for ( int i = 0; i < 25; i++ ) {
-        int j = state.bullet_count++;
-        state.bullet_pos_list[ j ][ 0 ] = hardware_width() * 0.5f;
-        state.bullet_pos_list[ j ][ 1 ] = hardware_height() * 0.5f;
-
-        float t = rand() % 1000 / 1000.0f;
-        t *= 2 * M_PI;
-        vec2 step;
-        step[ 0 ] = cos( t );
-        step[ 1 ] = sin( t );
-
-        glm_vec2_copy(
-            state.bullet_pos_list[ j ],
-            state.bullet_old_pos_list[ j ]
-        );
-        glm_vec2_muladds(
-            step,
-            ( rand() % 100 ) * ( 1 / 60.0f ),
-            state.bullet_old_pos_list[ j ]
-        );
-    }
-
-    for ( int i = 0; i < 1; i++ ) {
+    for ( int i = 0; i < 0; i++ ) {
         int j = state.line_bullet_count++;
 
         state.line_bullet_pos1_list[ j ][ 0 ] = 400;
@@ -360,7 +406,7 @@ static void setup_bullets()
         state.line_bullet_vel_list[ j ][ 1 ] = 20;
     }
 
-    for ( int i = 0; i < 20; i++ ) {
+    for ( int i = 0; i < 10; i++ ) {
         int j = state.mob_count++;
 
         state.mob_pos_list[ j ][ 0 ] = 100 + rand() % 400;

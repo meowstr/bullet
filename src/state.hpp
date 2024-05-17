@@ -12,6 +12,12 @@ template < typename T > void array_swap_last( T * arr, int count, int index )
 
 static const float k_hammer_length = 38.0f;
 
+enum scene_t {
+    SCENE_GAME,
+    SCENE_WIN,
+    SCENE_LOSE,
+};
+
 struct state_t {
     float tick_time;
     float render_time;
@@ -42,8 +48,13 @@ struct state_t {
 
     float fast_swing_timer;
     float fast_swing_vel;
+    float fast_swing_cooldown;
 
     float funny_timer;
+
+    scene_t scene;
+
+    vec2 exit_pos;
 };
 
 extern state_t state;

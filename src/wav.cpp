@@ -66,7 +66,7 @@ int load_wav( unsigned char * data, int data_len )
     wav_header_t header;
     memcpy( &header, data, sizeof( wav_header_t ) );
 
-    print_header( header );
+    // print_header( header );
 
     int waveform_size = to_int( header.subchunk2_size );
     uint8_t * waveform_data = new uint8_t[ waveform_size ];
