@@ -22,6 +22,11 @@ struct state_t {
     vec2 * bullet_pos_list;
     int bullet_count;
 
+    vec2 * line_bullet_pos1_list;
+    vec2 * line_bullet_pos2_list;
+    vec2 * line_bullet_vel_list;
+    int line_bullet_count;
+
     vec2 player_pos;
     float player_z;
     float player_vel_z;

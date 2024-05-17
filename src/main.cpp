@@ -30,6 +30,21 @@ static void init_bullet_table()
     state.bullet_old_pos_list = new vec2[ cap ];
 }
 
+static void init_line_bullet_table()
+{
+    int cap = 4096;
+    state.line_bullet_pos1_list = new vec2[ cap ];
+    state.line_bullet_pos2_list = new vec2[ cap ];
+    state.line_bullet_vel_list = new vec2[ cap ];
+}
+
+static void init_tables()
+{
+    init_room_table();
+    init_bullet_table();
+    init_line_bullet_table();
+}
+
 static float room_metric( rect_t r, vec2 pos )
 {
     // is this fucked? maybe....
@@ -86,7 +101,42 @@ static void tick_bullet( int i )
         state.bullet_pos_list[ i ]
     );
 
+    vec2 pre_constrained;
+    glm_vec2_copy( state.bullet_pos_list[ i ], pre_constrained );
     int collide = constrain_to_rooms( state.bullet_pos_list[ i ] );
+
+    if ( !collide ) return;
+
+    // bounce
+    if ( pre_constrained[ 0 ] - state.bullet_pos_list[ i ][ 0 ] != 0.0f ) {
+        step[ 0 ] *= -1.0f;
+    }
+    if ( pre_constrained[ 1 ] - state.bullet_pos_list[ i ][ 1 ] != 0.0f ) {
+        step[ 1 ] *= -1.0f;
+    }
+    glm_vec2_sub(
+        state.bullet_pos_list[ i ],
+        step,
+        state.bullet_old_pos_list[ i ]
+    );
+}
+
+static void tick_line_bullet( int i )
+{
+    glm_vec2_muladds(
+        state.line_bullet_vel_list[ i ],
+        state.tick_step,
+        state.line_bullet_pos1_list[ i ]
+    );
+
+    glm_vec2_muladds(
+        state.line_bullet_vel_list[ i ],
+        state.tick_step,
+        state.line_bullet_pos2_list[ i ]
+    );
+
+    constrain_to_rooms( state.line_bullet_pos1_list[ i ] );
+    constrain_to_rooms( state.line_bullet_pos2_list[ i ] );
 }
 
 static void tick_player()
@@ -154,7 +204,7 @@ static void loop()
 {
     float time = hardware_time();
 
-    state.tick_step = fmin( time - state.tick_time, 1 / 60.0f );
+    state.tick_step = fminf( time - state.tick_time, 1 / 60.0f );
     state.render_step = state.tick_step;
 
     state.tick_time = time;
@@ -179,6 +229,10 @@ static void loop()
 
     for ( int i = 0; i < state.bullet_count; i++ ) {
         tick_bullet( i );
+    }
+
+    for ( int i = 0; i < state.line_bullet_count; i++ ) {
+        tick_line_bullet( i );
     }
 
     tick_player();
@@ -226,12 +280,22 @@ static void setup_bullets()
             state.bullet_old_pos_list[ j ]
         );
     }
+
+    for ( int i = 0; i < 1; i++ ) {
+        int j = state.line_bullet_count++;
+
+        state.line_bullet_pos1_list[ j ][ 0 ] = 400;
+        state.line_bullet_pos1_list[ j ][ 1 ] = 400;
+        state.line_bullet_pos2_list[ j ][ 0 ] = 500;
+        state.line_bullet_pos2_list[ j ][ 1 ] = 500;
+        state.line_bullet_vel_list[ j ][ 0 ] = -20;
+        state.line_bullet_vel_list[ j ][ 1 ] = 20;
+    }
 }
 
 static void init()
 {
-    init_room_table();
-    init_bullet_table();
+    init_tables();
 
     setup_rooms();
     setup_bullets();

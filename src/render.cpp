@@ -50,8 +50,9 @@ struct {
 
     vbuffer_t player_buffer;
 
-    // Bullets
+    // bullets
     vbuffer_t bitch_buffer;
+    vbuffer_t line_bullet_buffer;
 
     struct {
         int id;
@@ -389,6 +390,8 @@ void render_init()
     intern.bitch_buffer.init( 2 );
     intern.bitch_buffer.set( bitch_bullet, 5 );
 
+    intern.line_bullet_buffer.init( 2 );
+
     // intern.fb_pos_buffer.init( 2 );
     // intern.fb_pos_buffer.set( fb_pos_data, 6 );
 
@@ -430,6 +433,50 @@ static void render_bitch_bullet( int i )
 
     intern.bitch_buffer.enable( 0 );
     glDrawArrays( GL_TRIANGLE_FAN, 0, intern.bitch_buffer.element_count );
+}
+
+static void render_line_bullet( int i )
+{
+    vec2 delta;
+    glm_vec2_sub(
+        state.line_bullet_pos2_list[ i ],
+        state.line_bullet_pos1_list[ i ],
+        delta
+    );
+
+    sprite_t s;
+    s.pos[ 0 ] = state.line_bullet_pos1_list[ i ][ 0 ];
+    s.pos[ 1 ] = state.line_bullet_pos1_list[ i ][ 1 ];
+    s.scale = 1.0f;
+    s.color = color_yellow;
+    s.rotation = atan2f( delta[ 1 ], delta[ 0 ] );
+    s.setup();
+
+    float len = glm_vec2_norm( delta );
+    float w = 3.0f;
+
+    // heh... shur up
+    float line_bullet[ 16 ];
+    line_bullet[ 0 ] = 0.0f;
+    line_bullet[ 1 ] = 0.0f;
+    line_bullet[ 2 ] = -w;
+    line_bullet[ 3 ] = 0.0f;
+    line_bullet[ 4 ] = 0.0f;
+    line_bullet[ 5 ] = -w;
+    line_bullet[ 6 ] = len;
+    line_bullet[ 7 ] = -w;
+    line_bullet[ 8 ] = len + w;
+    line_bullet[ 9 ] = 0.0f;
+    line_bullet[ 10 ] = len;
+    line_bullet[ 11 ] = w;
+    line_bullet[ 12 ] = 0.0f;
+    line_bullet[ 13 ] = w;
+    line_bullet[ 14 ] = -w;
+    line_bullet[ 15 ] = 0.0f;
+
+    intern.line_bullet_buffer.set( line_bullet, 8 );
+    intern.line_bullet_buffer.enable( 0 );
+    glDrawArrays( GL_TRIANGLE_FAN, 0, intern.line_bullet_buffer.element_count );
 }
 
 static void render_ui()
@@ -479,6 +526,10 @@ static void render_world()
 
     for ( int i = 0; i < state.bullet_count; i++ ) {
         render_bitch_bullet( i );
+    }
+
+    for ( int i = 0; i < state.line_bullet_count; i++ ) {
+        render_line_bullet( i );
     }
 
     render_player();
