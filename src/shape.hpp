@@ -19,10 +19,15 @@ struct rect_t {
     float center_x();
     float center_y();
 
-    void centerize() {
+    void centerize()
+    {
         x -= w * 0.5f;
         y -= h * 0.5f;
     }
 
     int contains( float x, float y ) const;
 };
+
+
+/// out_data :: float[n * 2]
+void ngon_vertices( float * out_data, int n );

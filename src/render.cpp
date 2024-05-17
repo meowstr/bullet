@@ -70,6 +70,11 @@ struct {
     vbuffer_t fb_pos_buffer;
     vbuffer_t fb_uv_buffer;
 
+    vbuffer_t player_buffer;
+
+    // Bullets
+    vbuffer_t bitch_buffer;
+
     struct {
         int id;
         int proj;
@@ -229,9 +234,42 @@ void solid_sprite_t::render()
     set_uniform( intern.shader1.proj, intern.proj );
     set_uniform( intern.shader1.model, local_model );
     set_uniform( intern.shader1.color, color4 );
-    intern.quad_pos_buffer.enable( 0 );
 
-    glDrawArrays( GL_TRIANGLES, 0, intern.quad_pos_buffer.element_count );
+    //intern.quad_pos_buffer.enable( 0 );
+    intern.player_buffer.enable( 0 );
+
+    glDrawArrays( GL_TRIANGLE_FAN, 0, intern.player_buffer.element_count );
+}
+
+static void render_bitch_bullet() {
+    color_t color = color_yellow;
+
+    vec4 color4;
+    color4[ 0 ] = color.r;
+    color4[ 1 ] = color.g;
+    color4[ 2 ] = color.b;
+    color4[ 3 ] = 1.0f;
+
+    rect_t rect;
+    rect.x = 300;
+    rect.y = 300;
+    rect.w = 10;
+    rect.h = 10;
+
+    float rotation = state.render_time;
+
+    mat4 local_model;
+    compute_model_matrix( local_model, rect, rotation );
+
+    glUseProgram( intern.shader1.id );
+    set_uniform( intern.shader1.proj, intern.proj );
+    set_uniform( intern.shader1.model, local_model );
+    set_uniform( intern.shader1.color, color4 );
+
+    //intern.quad_pos_buffer.enable( 0 );
+    intern.bitch_buffer.enable( 0 );
+
+    glDrawArrays( GL_TRIANGLE_FAN, 0, intern.bitch_buffer.element_count );
 }
 
 static void setup_camera()
@@ -349,6 +387,12 @@ void render_init()
     float fb_uv_data[ 12 ];
     rect_t{ 0.0f, 0.0f, 1.0f, 1.0f }.vertices_2d( fb_uv_data );
 
+    float player_data[ 18 ];
+    ngon_vertices( player_data, 7 );
+
+    float bitch_bullet[ 10 ];
+    ngon_vertices(bitch_bullet, 3); // (amount + 2) * 2
+
     // init vertex buffers
 
     intern.quad_pos_buffer.init( 2 );
@@ -356,6 +400,12 @@ void render_init()
 
     intern.quad_uv_buffer.init( 2 );
     intern.quad_uv_buffer.set( fb_uv_data, 6 );
+
+    intern.player_buffer.init( 2 );
+    intern.player_buffer.set( player_data, 9 );
+
+    intern.bitch_buffer.init(2);
+    intern.bitch_buffer.set(bitch_bullet, 5);
 
     // intern.fb_pos_buffer.init( 2 );
     // intern.fb_pos_buffer.set( fb_pos_data, 6 );
@@ -401,4 +451,6 @@ void render()
 
     s.color = color_white;
     s.render();
+
+    render_bitch_bullet();
 }

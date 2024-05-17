@@ -1,5 +1,7 @@
 #include "logging.hpp"
 
+#include "audio.hpp"
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +33,7 @@ void logger_log(
         break;
     case 2:
         pre_string = "[ERROR]";
+        audio_play_damage();
         break;
     }
 

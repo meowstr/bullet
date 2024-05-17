@@ -1,5 +1,7 @@
 #include "shape.hpp"
 
+#include <math.h>
+
 void rect_t::vertices( float * out_data ) const
 {
     out_data[ 0 ] = x;
@@ -69,4 +71,15 @@ float rect_t::center_y()
 int rect_t::contains( float ox, float oy ) const
 {
     return ox >= x && ox <= x + w && oy >= y && oy <= y + h;
+}
+
+void ngon_vertices( float * out_data, int n )
+{
+    out_data[ 0 ] = 0.0f;
+    out_data[ 1 ] = 0.0f;
+    for ( int i = 0; i < n + 1; i++ ) {
+        float theta = ( (float) ( i % n ) / n ) * 3.14159 * 2.0f;
+        out_data[ ( i + 1 ) * 2 + 0 ] = cos( theta );
+        out_data[ ( i + 1 ) * 2 + 1 ] = sin( theta );
+    }
 }
