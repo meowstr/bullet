@@ -6,4 +6,5 @@ void audio_tick();
 
 void audio_destroy();
 
+void audio_play_jump();
 void audio_play_damage();

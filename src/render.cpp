@@ -232,20 +232,6 @@ static void render_player()
     glDrawArrays( GL_TRIANGLE_FAN, 0, intern.player_buffer.element_count );
 }
 
-static void render_bitch_bullet()
-{
-    sprite_t s;
-    s.pos[ 0 ] = 300.0f;
-    s.pos[ 1 ] = 300.0f;
-    s.scale = 5.0f;
-    s.color = color_red;
-    s.rotation = state.render_time;
-    s.setup();
-
-    intern.bitch_buffer.enable( 0 );
-    glDrawArrays( GL_TRIANGLE_FAN, 0, intern.bitch_buffer.element_count );
-}
-
 static void setup_ui_camera()
 {
     glm_ortho(
@@ -430,11 +416,30 @@ void render_init()
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ); // blend alpha
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+static void render_bitch_bullet( int i )
+{
+    sprite_t s;
+    s.pos[ 0 ] = state.bullet_pos_list[ i ][ 0 ];
+    s.pos[ 1 ] = state.bullet_pos_list[ i ][ 1 ];
+    s.scale = 5.0f;
+    s.color = color_red;
+    s.rotation = state.render_time;
+    s.setup();
+
+    intern.bitch_buffer.enable( 0 );
+    glDrawArrays( GL_TRIANGLE_FAN, 0, intern.bitch_buffer.element_count );
+}
+
 static void render_ui()
 {
     setup_ui_camera();
 
-    render_text( 0, 0, "meow" );
+    text_settings_t settings;
+    settings.scale = 5.0f;
+
+    render_text( 0, 0, "meow", settings );
 }
 
 static void render_room_outline( int i )
@@ -472,7 +477,9 @@ static void render_world()
 
     render_rooms();
 
-    render_bitch_bullet();
+    for ( int i = 0; i < state.bullet_count; i++ ) {
+        render_bitch_bullet( i );
+    }
 
     render_player();
 }

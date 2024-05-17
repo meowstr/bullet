@@ -64,7 +64,7 @@ int hardware_init()
     intern.window = glfwCreateWindow(
         intern.width,
         intern.height,
-        "STARIX",
+        "bullet",
         nullptr,
         nullptr
     );

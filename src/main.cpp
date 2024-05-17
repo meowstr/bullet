@@ -23,35 +23,70 @@ static void init_room_table()
     state.room_rect_list = new rect_t[ cap ];
 }
 
-static int find_room( vec2 pos )
+static void init_bullet_table()
 {
-    int room = -1;
+    int cap = 1024;
+    state.bullet_pos_list = new vec2[ cap ];
+    state.bullet_old_pos_list = new vec2[ cap ];
+}
+
+static float room_metric( rect_t r, vec2 pos )
+{
+    // is this fucked? maybe....
+    float dx = abs( pos[ 0 ] - ( r.x + r.w * 0.5f ) ) - r.w * 0.5f;
+    float dy = abs( pos[ 1 ] - ( r.y + r.h * 0.5f ) ) - r.h * 0.5f;
+
+    if ( dx < 0.0f ) dx = 0.0f;
+    if ( dy < 0.0f ) dy = 0.0f;
+
+    return dx + dy;
+}
+
+static int find_closest_room( float * out_metric, vec2 pos )
+{
+    int best_room = -1;
+    float best_metric = 0.0f;
     for ( int i = 0; i < state.room_count; i++ ) {
-        if ( state.room_rect_list[ i ].contains( pos[ 0 ], pos[ 1 ] ) ) {
-            room = i;
+        float metric = room_metric( state.room_rect_list[ i ], pos );
+        if ( best_room == -1 || metric < best_metric ) {
+            best_room = i;
+            best_metric = metric;
         }
     }
 
-    return room;
+    *out_metric = best_metric;
+    return best_room;
 }
 
-static void move( vec2 pos, vec2 step )
+static int constrain_to_rooms( vec2 pos )
 {
-    vec2 new_pos;
-    glm_vec2_add( pos, step, new_pos );
+    float metric;
+    int room = find_closest_room( &metric, pos );
 
-    int room = find_room( pos );
-    int new_room = find_room( new_pos );
-
-    glm_vec2_copy( new_pos, pos );
-
-    if ( room == -1 ) return;     // already outside
-    if ( new_room != -1 ) return; // inside
-
-    // clamp to last good room
+    // clamp to room
     rect_t r = state.room_rect_list[ room ];
     pos[ 0 ] = clamp( pos[ 0 ], r.x, r.x + r.w );
     pos[ 1 ] = clamp( pos[ 1 ], r.y, r.y + r.h );
+
+    return metric != 0.0f;
+}
+
+static void tick_bullet( int i )
+{
+    vec2 step;
+    glm_vec2_sub(
+        state.bullet_pos_list[ i ],
+        state.bullet_old_pos_list[ i ],
+        step
+    );
+    glm_vec2_copy( state.bullet_pos_list[ i ], state.bullet_old_pos_list[ i ] );
+    glm_vec2_add(
+        state.bullet_pos_list[ i ],
+        step,
+        state.bullet_pos_list[ i ]
+    );
+
+    int collide = constrain_to_rooms( state.bullet_pos_list[ i ] );
 }
 
 static void tick_player()
@@ -62,9 +97,9 @@ static void tick_player()
     step[ 0 ] = hardware_x_axis();
     step[ 1 ] = hardware_y_axis();
     glm_vec2_normalize( step );
-    glm_vec2_scale( step, speed * state.tick_step, step );
+    glm_vec2_muladds( step, speed * state.tick_step, state.player_pos );
 
-    move( state.player_pos, step );
+    constrain_to_rooms( state.player_pos );
 
     // jumping
     state.player_vel_z -= 9.8 * state.tick_step;
@@ -78,6 +113,7 @@ static void tick_player()
 static void jump()
 {
     state.player_vel_z = 2.0f;
+    audio_play_jump();
 }
 
 static void loop()
@@ -98,6 +134,10 @@ static void loop()
     }
 
     audio_tick();
+
+    for ( int i = 0; i < state.bullet_count; i++ ) {
+        tick_bullet( i );
+    }
 
     tick_player();
 
@@ -121,14 +161,43 @@ static void setup_rooms()
     state.room_rect_list[ i ].margin( 100 );
 }
 
+static void setup_bullets()
+{
+    for ( int i = 0; i < 1000; i++ ) {
+        int j = state.bullet_count++;
+        state.bullet_pos_list[ j ][ 0 ] = hardware_width() * 0.5f;
+        state.bullet_pos_list[ j ][ 1 ] = hardware_height() * 0.5f;
+
+        float t = rand() % 1000 / 1000.0f;
+        t *= 2 * M_PI;
+        vec2 step;
+        step[ 0 ] = cos( t );
+        step[ 1 ] = sin( t );
+
+        glm_vec2_copy(
+            state.bullet_pos_list[ j ],
+            state.bullet_old_pos_list[ j ]
+        );
+        glm_vec2_muladds(
+            step,
+            ( rand() % 100 ) * ( 1 / 60.0f ),
+            state.bullet_old_pos_list[ j ]
+        );
+    }
+}
+
 static void init()
 {
     init_room_table();
+    init_bullet_table();
 
     setup_rooms();
+    setup_bullets();
 
     state.player_pos[ 0 ] = 500;
     state.player_pos[ 1 ] = 500;
+
+    INFO_LOG( "bullet count %d", state.bullet_count );
 }
 
 int main()

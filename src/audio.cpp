@@ -76,6 +76,11 @@ void audio_destroy()
     alcCloseDevice( intern.device );
 }
 
+void audio_play_jump()
+{
+    alSourcePlay( intern.click );
+}
+
 void audio_play_damage()
 {
     alSourcePlay( intern.hurt );

@@ -18,6 +18,10 @@ struct state_t {
     rect_t * room_rect_list;
     int room_count;
 
+    vec2 * bullet_old_pos_list;
+    vec2 * bullet_pos_list;
+    int bullet_count;
+
     vec2 player_pos;
     float player_z;
     float player_vel_z;
