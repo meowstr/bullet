@@ -38,11 +38,24 @@ static void init_line_bullet_table()
     state.line_bullet_vel_list = new vec2[ cap ];
 }
 
+static void init_mob_table()
+{
+    int cap = 1024;
+    state.mob_pos_list = new vec2[ cap ];
+}
+
+static void remove_mob( int i )
+{
+    array_swap_last( state.mob_pos_list, state.mob_count, i );
+    state.mob_count--;
+}
+
 static void init_tables()
 {
     init_room_table();
     init_bullet_table();
     init_line_bullet_table();
+    init_mob_table();
 }
 
 static float room_metric( rect_t r, vec2 pos )
@@ -137,6 +150,27 @@ static void tick_line_bullet( int i )
 
     constrain_to_rooms( state.line_bullet_pos1_list[ i ] );
     constrain_to_rooms( state.line_bullet_pos2_list[ i ] );
+}
+
+static void tick_hammer()
+{
+    vec2 hammer_end;
+    glm_vec2_copy( state.player_pos, hammer_end );
+    hammer_end[ 0 ] += k_hammer_length * cos( state.player_hammer );
+    hammer_end[ 1 ] += k_hammer_length * sin( state.player_hammer );
+
+    float mob_hit_distance = 20.0f;
+
+    for ( int i = 0; i < state.mob_count; i++ ) {
+        if ( glm_vec2_distance2( hammer_end, state.mob_pos_list[ i ] ) <
+             mob_hit_distance * mob_hit_distance ) {
+            remove_mob( i );
+            state.player_hammer_vel = 0.0f;
+            trigger_camera_shake();
+            audio_play_damage();
+            break;
+        }
+    }
 }
 
 static void tick_player()
@@ -243,6 +277,7 @@ static void loop()
     }
 
     tick_player();
+    tick_hammer();
 
     render();
 }
@@ -301,6 +336,13 @@ static void setup_bullets()
         state.line_bullet_pos2_list[ j ][ 1 ] = 500;
         state.line_bullet_vel_list[ j ][ 0 ] = -20;
         state.line_bullet_vel_list[ j ][ 1 ] = 20;
+    }
+
+    for ( int i = 0; i < 20; i++ ) {
+        int j = state.mob_count++;
+
+        state.mob_pos_list[ j ][ 0 ] = 100 + rand() % 400;
+        state.mob_pos_list[ j ][ 1 ] = 100 + rand() % 400;
     }
 }
 

@@ -83,6 +83,8 @@ struct {
     mat4 model;
     mat4 proj;
 
+    float shake_timer;
+
 } intern;
 
 static void init_shader1()
@@ -237,6 +239,15 @@ static void setup_ui_camera()
 
 static void setup_world_camera()
 {
+    vec2 shake;
+    shake[ 0 ] = 0.0f;
+    shake[ 1 ] = 0.0f;
+
+    if ( tick_timer( &intern.shake_timer, state.render_step ) ) {
+        shake[ 0 ] = 5.0f * sinf( state.render_time * 100.0f );
+        shake[ 1 ] = 5.0f * sinf( state.render_time * 100.0f );
+    }
+
     glm_ortho(
         0.0f,
         hardware_width(),
@@ -249,11 +260,11 @@ static void setup_world_camera()
 
     glm_translate_x(
         intern.proj,
-        hardware_width() * 0.5f - state.player_pos[ 0 ]
+        shake[ 0 ] + hardware_width() * 0.5f - state.player_pos[ 0 ]
     );
     glm_translate_y(
         intern.proj,
-        hardware_height() * 0.5f - state.player_pos[ 1 ]
+        shake[ 1 ] + hardware_height() * 0.5f - state.player_pos[ 1 ]
     );
 }
 
@@ -496,9 +507,20 @@ static void render_line_bullet( int i )
     glDrawArrays( GL_TRIANGLE_FAN, 0, intern.line_bullet_buffer.element_count );
 }
 
+static void render_mob( int i )
+{
+    solid_sprite_t s;
+    s.color = color_green;
+    s.rect.x = state.mob_pos_list[ i ][ 0 ];
+    s.rect.y = state.mob_pos_list[ i ][ 1 ];
+    s.rect.w = 32;
+    s.rect.h = 32;
+    s.rect.centerize();
+    s.render();
+}
+
 static void render_player()
 {
-
     float z_scale = 1.0f + state.player_z * 3.0f;
 
     sprite_t s;
@@ -586,7 +608,16 @@ static void render_world()
         render_line_bullet( i );
     }
 
+    for ( int i = 0; i < state.mob_count; i++ ) {
+        render_mob( i );
+    }
+
     render_player();
+}
+
+void trigger_camera_shake()
+{
+    intern.shake_timer = 0.2f;
 }
 
 void render()

@@ -3,11 +3,14 @@
 #include "shape.hpp"
 
 #include <cglm/types.h>
+#include <string.h>
 
 template < typename T > void array_swap_last( T * arr, int count, int index )
 {
-    arr[ index ] = arr[ count - 1 ];
+    memcpy( arr + index, arr + count - 1, sizeof( T ) );
 }
+
+static const float k_hammer_length = 38.0f;
 
 struct state_t {
     float tick_time;
@@ -26,6 +29,9 @@ struct state_t {
     vec2 * line_bullet_pos2_list;
     vec2 * line_bullet_vel_list;
     int line_bullet_count;
+
+    vec2 * mob_pos_list;
+    int mob_count;
 
     vec2 player_pos;
     float player_z;
