@@ -158,6 +158,9 @@ static void tick_player()
         state.player_z = 0.0f;
         state.player_vel_z = 0.0f;
     }
+
+    state.player_hammer += state.player_hammer_vel * state.tick_step;
+    state.player_hammer_vel *= 0.99f;
 }
 
 static void jump()
@@ -223,6 +226,10 @@ static void loop()
 
     for ( int i = 0; i < event_count; i++ ) {
         if ( events[ i ] == EVENT_JUMP ) jump();
+        if ( events[ i ] == EVENT_HAMMER_CW )
+            state.player_hammer_vel += 10.0f * state.tick_step;
+        if ( events[ i ] == EVENT_HAMMER_CCW )
+            state.player_hammer_vel -= 10.0f * state.tick_step;
     }
 
     audio_tick();

@@ -106,6 +106,14 @@ void hardware_set_loop( loop_function_t step )
     while ( !glfwWindowShouldClose( intern.window ) ) {
         intern.pending_event_count = 0;
         glfwPollEvents();
+
+        if ( glfwGetKey( intern.window, GLFW_KEY_J ) == GLFW_PRESS ) {
+            push_event( EVENT_HAMMER_CW );
+        }
+        if ( glfwGetKey( intern.window, GLFW_KEY_K ) == GLFW_PRESS ) {
+            push_event( EVENT_HAMMER_CCW );
+        }
+
         step();
         glfwSwapBuffers( intern.window );
     }

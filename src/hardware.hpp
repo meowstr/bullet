@@ -5,6 +5,8 @@ using loop_function_t = void ( * )();
 enum event_t {
     EVENT_TOUCH,
     EVENT_JUMP,
+    EVENT_HAMMER_CW,
+    EVENT_HAMMER_CCW,
 };
 
 int hardware_init();

@@ -50,6 +50,7 @@ struct {
     vbuffer_t fb_uv_buffer;
 
     vbuffer_t player_buffer;
+    vbuffer_t hammer_buffer;
 
     // bullets
     vbuffer_t bitch_buffer;
@@ -221,19 +222,6 @@ void solid_sprite_t::render()
     glDrawArrays( GL_TRIANGLES, 0, intern.quad_pos_buffer.element_count );
 }
 
-static void render_player()
-{
-    sprite_t s;
-    glm_vec2_copy( state.player_pos, s.pos );
-    s.scale = 8.0f + state.player_z * 20;
-    s.color = state.player_z ? color_green : color_white;
-    s.rotation = state.render_time;
-    s.setup();
-
-    intern.player_buffer.enable( 0 );
-    glDrawArrays( GL_TRIANGLE_FAN, 0, intern.player_buffer.element_count );
-}
-
 static void setup_ui_camera()
 {
     glm_ortho(
@@ -377,6 +365,31 @@ void render_init()
     float bitch_bullet[ 10 ];
     ngon_vertices( bitch_bullet, 3 ); // (amount + 2) * 2
 
+    float hammer[ 16 ];
+    hammer[ 0 ] = -2.0f;
+    hammer[ 1 ] = -2.0f;
+
+    hammer[ 2 ] = 30.0f;
+    hammer[ 3 ] = -2.0f;
+
+    hammer[ 4 ] = 30.0f;
+    hammer[ 5 ] = 2.0f;
+
+    hammer[ 6 ] = -2.0f;
+    hammer[ 7 ] = 2.0f;
+
+    hammer[ 8 ] = 30.0f;
+    hammer[ 9 ] = -10.0f;
+
+    hammer[ 10 ] = 44.0f;
+    hammer[ 11 ] = -10.0f;
+
+    hammer[ 12 ] = 44.0f;
+    hammer[ 13 ] = 10.0f;
+
+    hammer[ 14 ] = 30.0f;
+    hammer[ 15 ] = 10.0f;
+
     // init vertex buffers
 
     intern.quad_pos_buffer.init( 2 );
@@ -392,6 +405,9 @@ void render_init()
     intern.bitch_buffer.set( bitch_bullet, 5 );
 
     intern.line_bullet_buffer.init( 2 );
+
+    intern.hammer_buffer.init( 2 );
+    intern.hammer_buffer.set( hammer, 8 );
 
     // intern.fb_pos_buffer.init( 2 );
     // intern.fb_pos_buffer.set( fb_pos_data, 6 );
@@ -480,6 +496,31 @@ static void render_line_bullet( int i )
     glDrawArrays( GL_TRIANGLE_FAN, 0, intern.line_bullet_buffer.element_count );
 }
 
+static void render_player()
+{
+
+    float z_scale = 1.0f + state.player_z * 3.0f;
+
+    sprite_t s;
+    glm_vec2_copy( state.player_pos, s.pos );
+    s.scale = 8.0f * z_scale;
+    s.color = state.player_z ? color_green : color_white;
+    s.rotation = state.render_time;
+    s.setup();
+
+    intern.player_buffer.enable( 0 );
+    glDrawArrays( GL_TRIANGLE_FAN, 0, intern.player_buffer.element_count );
+
+    s.scale = z_scale;
+    s.color = color_orange;
+    s.rotation = state.player_hammer;
+    s.setup();
+
+    intern.hammer_buffer.enable( 0 );
+    glDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+    glDrawArrays( GL_TRIANGLE_FAN, 4, 4 );
+}
+
 static void render_ui()
 {
     setup_ui_camera();
@@ -490,6 +531,16 @@ static void render_ui()
     char buffer[ 1024 ];
     snprintf( buffer, 1024, "bullets: %d", state.bullet_count );
     render_text( 0, 0, buffer, settings );
+
+    settings.align_x = ALIGN_RIGHT;
+    render_text(
+        hardware_width(),
+        0.0f,
+        "move    [w][a][s][d]\n"
+        "hammer  [j][k]\n"
+        "jump    [space]",
+        settings
+    );
 }
 
 static void render_room_outline( int i )

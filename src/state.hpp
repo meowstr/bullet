@@ -31,6 +31,9 @@ struct state_t {
     float player_z;
     float player_vel_z;
 
+    float player_hammer;
+    float player_hammer_vel;
+
     float funny_timer;
 };
 
