@@ -163,7 +163,7 @@ static void tick_hammer()
 
     for ( int i = 0; i < state.mob_count; i++ ) {
         if ( glm_vec2_distance2( hammer_end, state.mob_pos_list[ i ] ) <
-             mob_hit_distance * mob_hit_distance ) {
+             mob_hit_distance * mob_hit_distance && (state.player_hammer_vel > 4.0f || state.player_hammer_vel < -4.0f) ) { // AL: Check hammer velocity before doing damage to enemy
             remove_mob( i );
             state.player_hammer_vel = 0.0f;
             trigger_camera_shake();
