@@ -240,8 +240,6 @@ static void init()
     state.player_pos[ 1 ] = 500;
 
     state.funny_timer = 3.0f;
-
-    INFO_LOG( "bullet count %d", state.bullet_count );
 }
 
 int main()

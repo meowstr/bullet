@@ -53,6 +53,17 @@ int audio_init()
         return 1;
     }
 
+    INFO_LOG(
+        "openal device: %s",
+        alcGetString( intern.device, ALC_ALL_DEVICES_SPECIFIER )
+    );
+    INFO_LOG(
+        "openal version: %s (%s) (%s)",
+        alGetString( AL_VERSION ),
+        alGetString( AL_VENDOR ),
+        alGetString( AL_RENDERER )
+    );
+
     float orientation[] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f };
 
     alListener3f( AL_POSITION, 0, 0, 1.0f );
