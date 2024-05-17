@@ -21,6 +21,7 @@
 #endif
 
 #include <math.h>
+#include <stdio.h>
 
 struct textured_sprite_t {
     rect_t rect;
@@ -484,9 +485,11 @@ static void render_ui()
     setup_ui_camera();
 
     text_settings_t settings;
-    settings.scale = 5.0f;
+    settings.scale = 2.0f;
 
-    render_text( 0, 0, "meow", settings );
+    char buffer[ 1024 ];
+    snprintf( buffer, 1024, "bullets: %d", state.bullet_count );
+    render_text( 0, 0, buffer, settings );
 }
 
 static void render_room_outline( int i )

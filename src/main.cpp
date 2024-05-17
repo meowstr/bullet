@@ -243,18 +243,22 @@ static void loop()
 static void setup_rooms()
 {
     int i = state.room_count++;
-    state.room_rect_list[ i ].x = 0;
-    state.room_rect_list[ i ].y = 0;
-    state.room_rect_list[ i ].w = hardware_width();
-    state.room_rect_list[ i ].h = hardware_height();
-    state.room_rect_list[ i ].margin( 100 );
+    state.room_rect_list[ i ].x = 100;
+    state.room_rect_list[ i ].y = 100;
+    state.room_rect_list[ i ].w = 600;
+    state.room_rect_list[ i ].h = 600;
 
     i = state.room_count++;
-    state.room_rect_list[ i ].x = hardware_width() * 0.5f;
+    state.room_rect_list[ i ].x = 400;
     state.room_rect_list[ i ].y = 200;
-    state.room_rect_list[ i ].w = hardware_width();
-    state.room_rect_list[ i ].h = hardware_height() * 0.5f;
-    state.room_rect_list[ i ].margin( 100 );
+    state.room_rect_list[ i ].w = 800;
+    state.room_rect_list[ i ].h = 100;
+
+    i = state.room_count++;
+    state.room_rect_list[ i ].x = 1100;
+    state.room_rect_list[ i ].y = 0;
+    state.room_rect_list[ i ].w = 600;
+    state.room_rect_list[ i ].h = 1000;
 }
 
 static void setup_bullets()
