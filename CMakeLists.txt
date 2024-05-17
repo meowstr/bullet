@@ -17,13 +17,13 @@ if ( UNIX )
 
   # pull libraries from the system
 
-  find_package(PkgConfig REQUIRED)
+  find_package( PkgConfig REQUIRED )
 
-  pkg_check_modules(GLFW REQUIRED IMPORTED_TARGET glfw3)
-  pkg_check_modules(OPENAL REQUIRED IMPORTED_TARGET openal)
+  pkg_check_modules( GLFW REQUIRED IMPORTED_TARGET glfw3 )
+  pkg_check_modules( OPENAL REQUIRED IMPORTED_TARGET openal )
 
-  add_library(glfw ALIAS PkgConfig::GLFW)
-  add_library(openal ALIAS PkgConfig::OPENAL)
+  add_library( glfw ALIAS PkgConfig::GLFW )
+  add_library( openal ALIAS PkgConfig::OPENAL )
 
 endif()
 
@@ -72,3 +72,8 @@ target_link_libraries( app PRIVATE glad cglm stb glfw openal )
 target_include_directories( app PRIVATE src )
 target_compile_features( app PRIVATE cxx_std_20 )
 
+add_custom_target( run
+    COMMAND app
+    DEPENDS app
+    WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
+)

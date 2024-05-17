@@ -15,7 +15,6 @@ static float clamp( float x, float min, float max )
     return x;
 }
 
-
 static void loop()
 {
     float time = hardware_time();
@@ -30,7 +29,7 @@ static void loop()
     int * events = hardware_events( &event_count );
 
     for ( int i = 0; i < event_count; i++ ) {
-        //if ( events[ i ] == EVENT_TOUCH ) handle_touch();
+        // if ( events[ i ] == EVENT_TOUCH ) handle_touch();
     }
 
     audio_tick();
@@ -40,6 +39,8 @@ static void loop()
 
 static void init()
 {
+    state.player_pos[ 0 ] = 500;
+    state.player_pos[ 1 ] = 500;
 }
 
 int main()
@@ -51,6 +52,8 @@ int main()
     init();
 
     audio_init();
+
+    audio_play_damage();
 
     render_init();
 

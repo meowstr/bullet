@@ -234,7 +234,7 @@ void solid_sprite_t::render()
     glDrawArrays( GL_TRIANGLES, 0, intern.quad_pos_buffer.element_count );
 }
 
-static void update_camera()
+static void setup_camera()
 {
     glm_ortho(
         0.0f,
@@ -377,7 +377,7 @@ void render_init()
     // init misc
 
     glm_mat4_identity( intern.model );
-    update_camera();
+    setup_camera();
 
     // init gl state
 
@@ -387,6 +387,18 @@ void render_init()
 
 void render()
 {
+    setup_camera();
+
     glClearColor( 0.2f, 0.0f, 0.0f, 1.0f );
     glClear( GL_COLOR_BUFFER_BIT );
+
+    solid_sprite_t s;
+    s.rect.x = state.player_pos[ 0 ];
+    s.rect.y = state.player_pos[ 1 ];
+    s.rect.w = 32;
+    s.rect.h = 32;
+    s.rect.centerize();
+
+    s.color = color_white;
+    s.render();
 }

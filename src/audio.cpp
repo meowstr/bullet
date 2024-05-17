@@ -67,9 +67,6 @@ int audio_init()
 
 void audio_tick()
 {
-    if ( state.touch ) {
-        alSourcePlay( intern.click );
-    }
 }
 
 void audio_destroy()
@@ -81,7 +78,5 @@ void audio_destroy()
 
 void audio_play_damage()
 {
-    if ( state.screen == SCREEN_BATTLE ) {
-        alSourcePlay( intern.hurt );
-    }
+    alSourcePlay( intern.hurt );
 }
