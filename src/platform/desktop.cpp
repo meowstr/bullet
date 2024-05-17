@@ -11,20 +11,37 @@ static struct {
     int width = 800;
     int height = 800;
 
-    int pending_event_list[ 16 ];
+    int pending_event_list[ 64 ];
     int pending_event_count = 0;
 
 } intern;
+
+static void push_event( int e )
+{
+    if ( intern.pending_event_count >= 64 ) {
+        ERROR_LOG( "input overflow" );
+    }
+
+    intern.pending_event_list[ intern.pending_event_count ] = e;
+    intern.pending_event_count++;
+}
 
 static void
 handle_mouse_button( GLFWwindow * window, int button, int action, int mods )
 {
     if ( button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS ) {
-        if ( intern.pending_event_count >= 16 ) {
-            ERROR_LOG( "input overflow" );
-        }
-        intern.pending_event_list[ intern.pending_event_count ] = EVENT_TOUCH;
-        intern.pending_event_count++;
+        push_event( EVENT_TOUCH );
+    }
+}
+
+static void
+handle_key( GLFWwindow * window, int key, int scancode, int action, int mods )
+{
+    if ( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS ) {
+        glfwSetWindowShouldClose( window, GLFW_TRUE );
+    }
+    if ( key == GLFW_KEY_SPACE && action == GLFW_PRESS ) {
+        push_event( EVENT_JUMP );
     }
 }
 
@@ -71,6 +88,7 @@ int hardware_init()
     glViewport( 0, 0, intern.width, intern.height );
 
     glfwSetMouseButtonCallback( intern.window, handle_mouse_button );
+    glfwSetKeyCallback( intern.window, handle_key );
 
     return 0;
 }
@@ -118,22 +136,32 @@ int * hardware_events( int * out_count )
     return intern.pending_event_list;
 }
 
-int hardware_touch_pos_x()
+float hardware_x_axis()
 {
-    double x, y;
-    glfwGetCursorPos( intern.window, &x, &y );
-    return (int) x;
+    float dx = 0.0f;
+
+    if ( glfwGetKey( intern.window, GLFW_KEY_A ) == GLFW_PRESS ) {
+        dx = -1.0f;
+    }
+
+    if ( glfwGetKey( intern.window, GLFW_KEY_D ) == GLFW_PRESS ) {
+        dx = 1.0f;
+    }
+
+    return dx;
 }
 
-int hardware_touch_pos_y()
+float hardware_y_axis()
 {
-    double x, y;
-    glfwGetCursorPos( intern.window, &x, &y );
-    return (int) y;
-}
+    float dy = 0.0f;
 
-int hardware_touch_down()
-{
-    return glfwGetMouseButton( intern.window, GLFW_MOUSE_BUTTON_LEFT ) ==
-           GLFW_PRESS;
+    if ( glfwGetKey( intern.window, GLFW_KEY_W ) == GLFW_PRESS ) {
+        dy = -1.0f;
+    }
+
+    if ( glfwGetKey( intern.window, GLFW_KEY_S ) == GLFW_PRESS ) {
+        dy = 1.0f;
+    }
+
+    return dy;
 }

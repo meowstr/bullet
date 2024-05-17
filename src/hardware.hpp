@@ -4,6 +4,7 @@ using loop_function_t = void ( * )();
 
 enum event_t {
     EVENT_TOUCH,
+    EVENT_JUMP,
 };
 
 int hardware_init();
@@ -17,9 +18,5 @@ int hardware_height();
 
 float hardware_time();
 
-void hardware_rumble();
-
-int hardware_touch_down();
-
-int hardware_touch_pos_x();
-int hardware_touch_pos_y();
+float hardware_x_axis();
+float hardware_y_axis();

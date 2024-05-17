@@ -12,6 +12,7 @@
 #include <cglm/affine.h>
 #include <cglm/cam.h>
 #include <cglm/mat4.h>
+#include <cglm/vec2.h>
 
 #ifdef __EMSCRIPTEN__
 #include <GLES2/gl2.h>
@@ -21,43 +22,20 @@
 
 #include <math.h>
 
-struct spritesheet_t {
-    int texture;
-    int cell_w;
-    int cell_h;
-    int width;
-    int height;
-    int padding;
-
-    rect_t uv_rect( int x, int y )
-    {
-        rect_t r;
-        r.x = (float) ( padding + x * ( cell_w + padding ) ) / width;
-        r.y = (float) ( padding + y * ( cell_h + padding ) ) / height;
-        r.w = (float) cell_w / width;
-        r.h = (float) cell_h / height;
-        return r;
-    }
-};
-
 struct textured_sprite_t {
     rect_t rect;
     rect_t uv_rect;
     color_t color;
     float alpha = 1.0f;
-    float rotation = 0.0f;
 
     int texture;
     void render();
-
-    void from_sheet( spritesheet_t sheet, int sheet_x, int sheet_y );
 };
 
 struct solid_sprite_t {
     rect_t rect;
     color_t color;
     float alpha = 1.0f;
-    float rotation = 0.0f;
 
     void render();
 };
@@ -148,48 +126,18 @@ static void init_shader3()
     glBindAttribLocation( id, 1, "a_uv" );
 }
 
-void compute_model_matrix( mat4 out, rect_t rect, float rotation )
+void compute_model_matrix( mat4 out, rect_t rect )
 {
     vec3 scale;
     scale[ 0 ] = roundf( rect.w );
     scale[ 1 ] = roundf( rect.h );
     scale[ 2 ] = 1.0f;
 
-    vec3 translate;
-    translate[ 0 ] = roundf( rect.x );
-    translate[ 1 ] = roundf( rect.y );
-    translate[ 2 ] = 0.0f;
-
-    vec3 axis;
-    axis[ 0 ] = 0.0f;
-    axis[ 1 ] = 0.0f;
-    axis[ 2 ] = 1.0f;
-
     glm_mat4_identity( out );
-    glm_translate( out, translate );
+    glm_translate_x( out, roundf( rect.x ) );
+    glm_translate_y( out, roundf( rect.y ) );
     glm_scale( out, scale );
-    vec3 temp;
-    temp[ 0 ] = 0.5f;
-    temp[ 1 ] = 0.5f;
-    temp[ 2 ] = 0.0f;
-    glm_translate( out, temp );
-    glm_rotate( out, rotation, axis );
-    temp[ 0 ] = -0.5f;
-    temp[ 1 ] = -0.5f;
-    temp[ 2 ] = 0.0f;
-    glm_translate( out, temp );
-
     glm_mat4_mul( intern.model, out, out );
-}
-
-void textured_sprite_t::from_sheet(
-    spritesheet_t sheet,
-    int sheet_x,
-    int sheet_y
-)
-{
-    texture = sheet.texture;
-    uv_rect = sheet.uv_rect( sheet_x, sheet_y );
 }
 
 void textured_sprite_t::render()
@@ -201,7 +149,7 @@ void textured_sprite_t::render()
     color4[ 3 ] = alpha;
 
     mat4 local_model;
-    compute_model_matrix( local_model, rect, rotation );
+    compute_model_matrix( local_model, rect );
 
     float uv_data[ 12 ];
     uv_rect.vertices_2d( uv_data );
@@ -219,6 +167,38 @@ void textured_sprite_t::render()
     glDrawArrays( GL_TRIANGLES, 0, intern.quad_pos_buffer.element_count );
 }
 
+struct sprite_t {
+    vec2 pos;
+    float scale;
+    float rotation = 0.0f;
+
+    color_t color;
+    float alpha = 1.0f;
+
+    void setup();
+};
+
+void sprite_t::setup()
+{
+    vec4 color4;
+    color4[ 0 ] = color.r;
+    color4[ 1 ] = color.g;
+    color4[ 2 ] = color.b;
+    color4[ 3 ] = alpha;
+
+    mat4 local_model;
+    glm_mat4_identity( local_model );
+    glm_translate_x( local_model, pos[ 0 ] );
+    glm_translate_y( local_model, pos[ 1 ] );
+    glm_scale_uni( local_model, scale );
+    glm_rotate_z( local_model, rotation, local_model );
+
+    glUseProgram( intern.shader1.id );
+    set_uniform( intern.shader1.proj, intern.proj );
+    set_uniform( intern.shader1.model, local_model );
+    set_uniform( intern.shader1.color, color4 );
+}
+
 void solid_sprite_t::render()
 {
     vec4 color4;
@@ -228,51 +208,45 @@ void solid_sprite_t::render()
     color4[ 3 ] = alpha;
 
     mat4 local_model;
-    compute_model_matrix( local_model, rect, rotation );
+    compute_model_matrix( local_model, rect );
 
     glUseProgram( intern.shader1.id );
     set_uniform( intern.shader1.proj, intern.proj );
     set_uniform( intern.shader1.model, local_model );
     set_uniform( intern.shader1.color, color4 );
 
-    //intern.quad_pos_buffer.enable( 0 );
-    intern.player_buffer.enable( 0 );
+    intern.quad_pos_buffer.enable( 0 );
+    glDrawArrays( GL_TRIANGLES, 0, intern.quad_pos_buffer.element_count );
+}
 
+static void render_player()
+{
+    sprite_t s;
+    glm_vec2_copy( state.player_pos, s.pos );
+    s.scale = 8.0f + state.player_z * 20;
+    s.color = state.player_z ? color_green : color_white;
+    s.rotation = state.render_time;
+    s.setup();
+
+    intern.player_buffer.enable( 0 );
     glDrawArrays( GL_TRIANGLE_FAN, 0, intern.player_buffer.element_count );
 }
 
-static void render_bitch_bullet() {
-    color_t color = color_yellow;
+static void render_bitch_bullet()
+{
+    sprite_t s;
+    s.pos[ 0 ] = 300.0f;
+    s.pos[ 1 ] = 300.0f;
+    s.scale = 5.0f;
+    s.color = color_red;
+    s.rotation = state.render_time;
+    s.setup();
 
-    vec4 color4;
-    color4[ 0 ] = color.r;
-    color4[ 1 ] = color.g;
-    color4[ 2 ] = color.b;
-    color4[ 3 ] = 1.0f;
-
-    rect_t rect;
-    rect.x = 300;
-    rect.y = 300;
-    rect.w = 10;
-    rect.h = 10;
-
-    float rotation = state.render_time;
-
-    mat4 local_model;
-    compute_model_matrix( local_model, rect, rotation );
-
-    glUseProgram( intern.shader1.id );
-    set_uniform( intern.shader1.proj, intern.proj );
-    set_uniform( intern.shader1.model, local_model );
-    set_uniform( intern.shader1.color, color4 );
-
-    //intern.quad_pos_buffer.enable( 0 );
     intern.bitch_buffer.enable( 0 );
-
     glDrawArrays( GL_TRIANGLE_FAN, 0, intern.bitch_buffer.element_count );
 }
 
-static void setup_camera()
+static void setup_ui_camera()
 {
     glm_ortho(
         0.0f,
@@ -282,6 +256,28 @@ static void setup_camera()
         0.0f,
         1000.0f,
         intern.proj
+    );
+}
+
+static void setup_world_camera()
+{
+    glm_ortho(
+        0.0f,
+        hardware_width(),
+        hardware_height(),
+        0.0f,
+        0.0f,
+        1000.0f,
+        intern.proj
+    );
+
+    glm_translate_x(
+        intern.proj,
+        hardware_width() * 0.5f - state.player_pos[ 0 ]
+    );
+    glm_translate_y(
+        intern.proj,
+        hardware_height() * 0.5f - state.player_pos[ 1 ]
     );
 }
 
@@ -387,11 +383,11 @@ void render_init()
     float fb_uv_data[ 12 ];
     rect_t{ 0.0f, 0.0f, 1.0f, 1.0f }.vertices_2d( fb_uv_data );
 
-    float player_data[ 18 ];
-    ngon_vertices( player_data, 7 );
+    float player_data[ 14 ];
+    ngon_vertices( player_data, 5 );
 
     float bitch_bullet[ 10 ];
-    ngon_vertices(bitch_bullet, 3); // (amount + 2) * 2
+    ngon_vertices( bitch_bullet, 3 ); // (amount + 2) * 2
 
     // init vertex buffers
 
@@ -402,10 +398,10 @@ void render_init()
     intern.quad_uv_buffer.set( fb_uv_data, 6 );
 
     intern.player_buffer.init( 2 );
-    intern.player_buffer.set( player_data, 9 );
+    intern.player_buffer.set( player_data, 7 );
 
-    intern.bitch_buffer.init(2);
-    intern.bitch_buffer.set(bitch_bullet, 5);
+    intern.bitch_buffer.init( 2 );
+    intern.bitch_buffer.set( bitch_bullet, 5 );
 
     // intern.fb_pos_buffer.init( 2 );
     // intern.fb_pos_buffer.set( fb_pos_data, 6 );
@@ -427,7 +423,6 @@ void render_init()
     // init misc
 
     glm_mat4_identity( intern.model );
-    setup_camera();
 
     // init gl state
 
@@ -435,22 +430,58 @@ void render_init()
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA ); // blend alpha
 }
 
+static void render_ui()
+{
+    setup_ui_camera();
+
+    render_text( 0, 0, "meow" );
+}
+
+static void render_room_outline( int i )
+{
+    solid_sprite_t s;
+    s.rect = state.room_rect_list[ i ];
+    s.rect.margin( -10 );
+    s.color = color_white;
+    s.render();
+}
+
+static void render_room( int i )
+{
+    solid_sprite_t s;
+    s.rect = state.room_rect_list[ i ];
+    s.rect.margin( -5 );
+    s.color = color_black;
+    s.render();
+}
+
+static void render_rooms()
+{
+    for ( int i = 0; i < state.room_count; i++ ) {
+        render_room_outline( i );
+    }
+
+    for ( int i = 0; i < state.room_count; i++ ) {
+        render_room( i );
+    }
+}
+
+static void render_world()
+{
+    setup_world_camera();
+
+    render_rooms();
+
+    render_bitch_bullet();
+
+    render_player();
+}
+
 void render()
 {
-    setup_camera();
-
     glClearColor( 0.2f, 0.0f, 0.0f, 1.0f );
     glClear( GL_COLOR_BUFFER_BIT );
 
-    solid_sprite_t s;
-    s.rect.x = state.player_pos[ 0 ];
-    s.rect.y = state.player_pos[ 1 ];
-    s.rect.w = 32;
-    s.rect.h = 32;
-    s.rect.centerize();
-
-    s.color = color_white;
-    s.render();
-
-    render_bitch_bullet();
+    render_world();
+    render_ui();
 }
