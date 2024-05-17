@@ -25,7 +25,7 @@ static void init_room_table()
 
 static void init_bullet_table()
 {
-    int cap = 1024;
+    int cap = 4096;
     state.bullet_pos_list = new vec2[ cap ];
     state.bullet_old_pos_list = new vec2[ cap ];
 }
@@ -116,6 +116,40 @@ static void jump()
     audio_play_jump();
 }
 
+static void spawn_funnies( vec2 pos )
+{
+    for ( int i = 0; i < 25; i++ ) {
+        int j = state.bullet_count++;
+        state.bullet_pos_list[ j ][ 0 ] = pos[ 0 ];
+        state.bullet_pos_list[ j ][ 1 ] = pos[ 1 ];
+
+        float t = rand() % 1000 / 1000.0f;
+        t *= 2 * M_PI;
+        vec2 step;
+        step[ 0 ] = cos( t );
+        step[ 1 ] = sin( t );
+
+        glm_vec2_copy(
+            state.bullet_pos_list[ j ],
+            state.bullet_old_pos_list[ j ]
+        );
+        glm_vec2_muladds(
+            step,
+            ( rand() % 100 ) * ( 1 / 60.0f ),
+            state.bullet_old_pos_list[ j ]
+        );
+    }
+}
+
+static void do_funny()
+{
+    int count = state.bullet_count;
+    for ( int i = 0; i < count; i++ ) {
+        spawn_funnies( state.bullet_pos_list[ i ] );
+    }
+    audio_play_damage();
+}
+
 static void loop()
 {
     float time = hardware_time();
@@ -125,6 +159,14 @@ static void loop()
 
     state.tick_time = time;
     state.render_time = time;
+
+    if ( state.funny_timer ) {
+        state.funny_timer -= state.tick_step;
+        if ( state.funny_timer <= 0.0f ) {
+            do_funny();
+            state.funny_timer = 0.0f;
+        }
+    }
 
     int event_count;
     int * events = hardware_events( &event_count );
@@ -163,7 +205,7 @@ static void setup_rooms()
 
 static void setup_bullets()
 {
-    for ( int i = 0; i < 1000; i++ ) {
+    for ( int i = 0; i < 25; i++ ) {
         int j = state.bullet_count++;
         state.bullet_pos_list[ j ][ 0 ] = hardware_width() * 0.5f;
         state.bullet_pos_list[ j ][ 1 ] = hardware_height() * 0.5f;
@@ -196,6 +238,8 @@ static void init()
 
     state.player_pos[ 0 ] = 500;
     state.player_pos[ 1 ] = 500;
+
+    state.funny_timer = 3.0f;
 
     INFO_LOG( "bullet count %d", state.bullet_count );
 }

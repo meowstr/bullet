@@ -25,6 +25,8 @@ struct state_t {
     vec2 player_pos;
     float player_z;
     float player_vel_z;
+
+    float funny_timer;
 };
 
 extern state_t state;
