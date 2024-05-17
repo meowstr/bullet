@@ -559,7 +559,7 @@ static void render_ui()
         hardware_width(),
         0.0f,
         "move    [w][a][s][d]\n"
-        "hammer  [j][k]\n"
+        "hammer  [h][j][k][l]\n"
         "jump    [space]",
         settings
     );

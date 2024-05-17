@@ -43,6 +43,12 @@ handle_key( GLFWwindow * window, int key, int scancode, int action, int mods )
     if ( key == GLFW_KEY_SPACE && action == GLFW_PRESS ) {
         push_event( EVENT_JUMP );
     }
+    if ( key == GLFW_KEY_H && action == GLFW_PRESS ) {
+        push_event( EVENT_FAST_HAMMER_CW );
+    }
+    if ( key == GLFW_KEY_L && action == GLFW_PRESS ) {
+        push_event( EVENT_FAST_HAMMER_CCW );
+    }
 }
 
 int hardware_init()

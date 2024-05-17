@@ -40,6 +40,9 @@ struct state_t {
     float player_hammer;
     float player_hammer_vel;
 
+    float fast_swing_timer;
+    float fast_swing_vel;
+
     float funny_timer;
 };
 

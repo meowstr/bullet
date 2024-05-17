@@ -163,7 +163,15 @@ static void tick_hammer()
 
     for ( int i = 0; i < state.mob_count; i++ ) {
         if ( glm_vec2_distance2( hammer_end, state.mob_pos_list[ i ] ) <
-             mob_hit_distance * mob_hit_distance && (state.player_hammer_vel > 4.0f || state.player_hammer_vel < -4.0f) ) { // AL: Check hammer velocity before doing damage to enemy
+                 mob_hit_distance * mob_hit_distance &&
+             ( state.player_hammer_vel > 4.0f || state.player_hammer_vel < -4.0f
+             ) ) { // AL: Check hammer velocity before doing damage to enemy
+
+            // cancel fast swing
+            if ( state.fast_swing_timer ) {
+                state.fast_swing_timer = 0.0f;
+            }
+
             remove_mob( i );
             state.player_hammer_vel = 0.0f;
             trigger_camera_shake();
@@ -191,6 +199,10 @@ static void tick_player()
     if ( state.player_z < 0.0f ) {
         state.player_z = 0.0f;
         state.player_vel_z = 0.0f;
+    }
+
+    if ( tick_timer( &state.fast_swing_timer, state.tick_step ) ) {
+        state.player_hammer_vel = state.fast_swing_vel;
     }
 
     state.player_hammer += state.player_hammer_vel * state.tick_step;
@@ -264,6 +276,16 @@ static void loop()
             state.player_hammer_vel += 10.0f * state.tick_step;
         if ( events[ i ] == EVENT_HAMMER_CCW )
             state.player_hammer_vel -= 10.0f * state.tick_step;
+
+        if ( events[ i ] == EVENT_FAST_HAMMER_CW ) {
+            state.fast_swing_timer = 0.2f;
+            state.fast_swing_vel = 40.0f;
+        }
+
+        if ( events[ i ] == EVENT_FAST_HAMMER_CCW ) {
+            state.fast_swing_timer = 0.2f;
+            state.fast_swing_vel = -40.0f;
+        }
     }
 
     audio_tick();

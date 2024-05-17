@@ -7,6 +7,8 @@ enum event_t {
     EVENT_JUMP,
     EVENT_HAMMER_CW,
     EVENT_HAMMER_CCW,
+    EVENT_FAST_HAMMER_CW,
+    EVENT_FAST_HAMMER_CCW,
 };
 
 int hardware_init();
