@@ -42,8 +42,7 @@ if ( WIN32 )
 
 endif()
 
-add_executable( app 
-
+set( COMMON_SOURCES
   # includes
   src/audio.hpp
   src/color.hpp
@@ -72,10 +71,23 @@ add_executable( app
   src/state.cpp
   src/utils.cpp
   src/wav.cpp
-
-  # platform dependent
-  src/platform/desktop.cpp
 )
+
+if ( WIN32 )
+  add_executable( app WIN32 
+    ${COMMON_SOURCES}
+    # platform dependent
+    src/platform/desktop.cpp
+  )
+endif()
+
+if ( UNIX )
+  add_executable( app
+    ${COMMON_SOURCES}
+    # platform dependent
+    src/platform/desktop.cpp
+  )
+endif()
 
 target_link_libraries( app PRIVATE glad cglm stb glfw openal )
 target_include_directories( app PRIVATE src )

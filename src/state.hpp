@@ -13,6 +13,7 @@ template < typename T > void array_swap_last( T * arr, int count, int index )
 static const float k_hammer_length = 38.0f;
 
 enum scene_t {
+    SCENE_START,
     SCENE_GAME,
     SCENE_WIN,
     SCENE_LOSE,

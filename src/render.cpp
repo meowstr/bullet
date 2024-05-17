@@ -652,13 +652,49 @@ void render()
         render_world();
         render_ui();
     }
+    if ( state.scene == SCENE_START ) {
+        setup_ui_camera();
+        text_settings_t settings;
+        settings.align_x = ALIGN_CENTER;
+        settings.align_y = ALIGN_CENTER;
+        settings.scale = 5.0f;
+        render_text(
+            hardware_width() / 2,
+            hardware_height() / 2,
+            "don't",
+            settings
+        );
+
+        settings.align_y = ALIGN_RIGHT;
+        settings.scale = 2.0f;
+        render_text(
+            hardware_width() / 2,
+            hardware_height() - 10.0f,
+            "press [space] to start",
+            settings
+        );
+    }
     if ( state.scene == SCENE_WIN ) {
         setup_ui_camera();
         text_settings_t settings;
         settings.align_x = ALIGN_CENTER;
         settings.align_y = ALIGN_CENTER;
         settings.scale = 5.0f;
-        render_text( hardware_width() / 2, hardware_height() / 2, "WIN", settings );
+        render_text(
+            hardware_width() / 2,
+            hardware_height() / 2,
+            "WIN",
+            settings
+        );
+
+        settings.align_y = ALIGN_RIGHT;
+        settings.scale = 2.0f;
+        render_text(
+            hardware_width() / 2,
+            hardware_height() - 10.0f,
+            "a stupid game by meowstr <3",
+            settings
+        );
     }
     if ( state.scene == SCENE_LOSE ) {
         setup_ui_camera();
@@ -666,6 +702,20 @@ void render()
         settings.align_x = ALIGN_CENTER;
         settings.align_y = ALIGN_CENTER;
         settings.scale = 5.0f;
-        render_text( hardware_width() / 2, hardware_height() / 2, "LOSE", settings );
+        render_text(
+            hardware_width() / 2,
+            hardware_height() / 2,
+            "LOSE",
+            settings
+        );
+
+        settings.align_y = ALIGN_RIGHT;
+        settings.scale = 2.0f;
+        render_text(
+            hardware_width() / 2,
+            hardware_height() - 10.0f,
+            "a stupid game by meowstr <3",
+            settings
+        );
     }
 }

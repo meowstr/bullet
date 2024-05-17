@@ -152,20 +152,20 @@ static void tick_bullet( int i )
 
     if ( !collide ) return;
 
-    remove_bullet( i );
+    // remove_bullet( i );
 
     // bounce
-    // if ( pre_constrained[ 0 ] - state.bullet_pos_list[ i ][ 0 ] != 0.0f ) {
-    //     step[ 0 ] *= -1.0f;
-    // }
-    // if ( pre_constrained[ 1 ] - state.bullet_pos_list[ i ][ 1 ] != 0.0f ) {
-    //     step[ 1 ] *= -1.0f;
-    // }
-    // glm_vec2_sub(
-    //     state.bullet_pos_list[ i ],
-    //     step,
-    //     state.bullet_old_pos_list[ i ]
-    // );
+    if ( pre_constrained[ 0 ] - state.bullet_pos_list[ i ][ 0 ] != 0.0f ) {
+        step[ 0 ] *= -1.0f;
+    }
+    if ( pre_constrained[ 1 ] - state.bullet_pos_list[ i ][ 1 ] != 0.0f ) {
+        step[ 1 ] *= -1.0f;
+    }
+    glm_vec2_sub(
+        state.bullet_pos_list[ i ],
+        step,
+        state.bullet_old_pos_list[ i ]
+    );
 }
 
 static void tick_line_bullet( int i )
@@ -360,6 +360,18 @@ static void loop()
         tick();
     }
 
+    if ( state.scene == SCENE_START ) {
+        int event_count;
+        int * events = hardware_events( &event_count );
+
+        for ( int i = 0; i < event_count; i++ ) {
+            if ( events[ i ] == EVENT_JUMP ) {
+                audio_play_damage();
+                state.scene = SCENE_GAME;
+            }
+        }
+    }
+
     render();
 }
 
@@ -427,7 +439,11 @@ static void init()
     state.funny_timer = 3.0f;
 }
 
+#ifdef _WIN32
+int WinMain()
+#else
 int main()
+#endif
 {
     INFO_LOG( "meow" );
 
