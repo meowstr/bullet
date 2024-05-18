@@ -82,7 +82,7 @@ int hardware_init()
 
     glfwMakeContextCurrent( intern.window );
 
-    if ( !gladLoadGLES2Loader( (GLADloadproc) glfwGetProcAddress ) ) {
+    if ( !gladLoadGLLoader( (GLADloadproc) glfwGetProcAddress ) ) {
         ERROR_LOG( "failed to load OpenGL" );
         return 1;
     }
