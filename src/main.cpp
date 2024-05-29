@@ -439,7 +439,7 @@ static void init()
     state.funny_timer = 3.0f;
 }
 
-#ifdef _WIN32
+#if defined( _WIN32 ) and RELEASE
 int WinMain()
 #else
 int main()
