@@ -7,7 +7,6 @@
 
 #include <cglm/vec2.h>
 
-#include <float.h>
 #include <math.h>
 
 static float clamp( float x, float min, float max )

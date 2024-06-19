@@ -2,6 +2,8 @@ cmake_minimum_required( VERSION 3.28 )
 
 project( bullet )
 
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
+
 set( COMMON_SOURCES
   # includes
   src/audio.hpp
